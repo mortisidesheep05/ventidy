@@ -19,8 +19,13 @@ if sys.platform == "win32":
 
 # Suppress symlinks warning
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
+# In serverless environments (e.g. Vercel, AWS Lambda), root filesystem is read-only.
+# Redirect model and cache files to writable /tmp storage.
+if "VERCEL" in os.environ or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+    os.environ.setdefault("HF_HOME", "/tmp/huggingface")
+    os.environ.setdefault("TRANSFORMERS_CACHE", "/tmp/huggingface/hub")
+    os.environ.setdefault("TORCH_HOME", "/tmp/torch")
 
 import chromadb
 from sentence_transformers import SentenceTransformer
@@ -70,11 +75,14 @@ def init_llm(name: str = model_name):
 # ============================================================
 print("[Ventidy AI] Loading SentenceTransformer embedding model...")
 try:
+    # First attempt fast load from local cache if present
     embedding_model = SentenceTransformer(
         "sentence-transformers/all-MiniLM-L6-v2",
         local_files_only=True
     )
 except Exception:
+    # In a fresh cloud container (e.g. Vercel), download model weights to writable cache
+    print("[Ventidy AI] Local cache not found. Downloading 'sentence-transformers/all-MiniLM-L6-v2' from Hugging Face...")
     embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 print("[OK] Embedding model loaded!")

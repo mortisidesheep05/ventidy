@@ -1,10 +1,15 @@
 import os
 import sys
 
-# Ensure offline mode is active before loading any AI dependencies
+# Ensure symlinks warning is suppressed
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
+# On serverless platforms (such as Vercel / AWS Lambda), the root filesystem is read-only.
+# Redirect model and cache files to writable /tmp directory.
+if "VERCEL" in os.environ or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+    os.environ.setdefault("HF_HOME", "/tmp/huggingface")
+    os.environ.setdefault("TRANSFORMERS_CACHE", "/tmp/huggingface/hub")
+    os.environ.setdefault("TORCH_HOME", "/tmp/torch")
 
 from contextlib import asynccontextmanager
 import uvicorn
@@ -28,11 +33,31 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS for React frontend (allow all local dev origins)
+# Configure CORS: support FRONTEND_URL env var for production Vercel frontend,
+# with local development origins supported as default fallback.
+frontend_env = os.environ.get("FRONTEND_URL", "").strip()
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
+if frontend_env:
+    for url in frontend_env.split(","):
+        cleaned_url = url.strip().rstrip("/")
+        if cleaned_url and cleaned_url not in allowed_origins:
+            allowed_origins.append(cleaned_url)
+    cors_origins = allowed_origins
+    cors_credentials = True
+else:
+    cors_origins = ["*"]
+    cors_credentials = False
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_credentials=cors_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
