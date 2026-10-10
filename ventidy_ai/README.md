@@ -1,32 +1,26 @@
-# Ventidy AI Chatbot Backend
+# Ventidy AI Chatbot Backend (Lightweight Production)
 
-This is the Python AI Backend for the Ventidy Solutions customer chatbot.
+Lightweight, production-ready AI backend for the Ventidy Solutions customer chatbot.
 
 ## Architecture
-- **Vector DB**: ChromaDB (`ventidy_knowledge_v5`)
-- **Embeddings**: `sentence-transformers/all-MiniLM-L6-v2`
+- **Knowledge Base**: `knowledge.json` (Structured company profile, services, contact, hours, coverage)
+- **Engine**: Lightweight multi-stage retrieval with exact/phrase, token overlap, difflib fuzzy matching, and negative guardrails. Zero heavy ML dependencies (no PyTorch, Transformers, SentenceTransformers, or ChromaDB required).
+- **Optional LLM**: Supports external OpenAI/Groq/Gemini API via `VENTIDY_LLM_API_KEY` (runs 100% locally with 0ms latency when unset).
 - **API Framework**: FastAPI + Uvicorn with CORS support
-- **Port**: `8000` (Endpoints: `POST /api/chat`, `GET /api/health`)
+- **Port**: `8000` (Endpoints: `POST /api/chat`, `GET /api/health`, `GET /health`)
 
 ## Quick Start
-To start the backend server, simply run:
 ```bash
-run_server.bat
-```
-or
-```bash
+pip install -r requirements.txt
 python server.py
+```
+or run with uvicorn:
+```bash
+uvicorn server:app --host 0.0.0.0 --port 8000
 ```
 
 Once running:
-- Server will be live at: http://localhost:8000
-- API documentation (Swagger): http://localhost:8000/docs
+- Server: http://localhost:8000
+- API docs: http://localhost:8000/docs
 - Health check: http://localhost:8000/api/health
-
-## Optional: Heavy Local LLM
-By default, the backend uses a high-performance contextual RAG synthesizer (< 5ms response time, CPU & memory friendly).
-If you want to run the full HuggingFace causal LM (`Qwen/Qwen3-4B-Instruct-2507` or similar):
-```cmd
-set VENTIDY_LOAD_LLM=1
-python server.py
-```
+- Chat endpoint: `POST http://localhost:8000/api/chat` with `{"message": "What services do you provide?"}`

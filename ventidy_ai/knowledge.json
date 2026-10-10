@@ -1,0 +1,343 @@
+{
+  "company_name": "Ventidy Solutions",
+  "documents": [
+    {
+      "id": "ventidy_company_about",
+      "category": "company",
+      "title": "About Ventidy Solutions",
+      "keywords": [
+        "ventidy", "company", "who is", "what is ventidy", "overview",
+        "business", "chennai", "tamil nadu", "industries", "hospitality", "manufacturing"
+      ],
+      "patterns": [
+        "what is ventidy",
+        "who is ventidy",
+        "tell me about ventidy",
+        "about ventidy",
+        "what does ventidy do",
+        "about your company",
+        "what company is this"
+      ],
+      "document": "Ventidy Solutions is a commercial duct cleaning and maintenance company based in Chennai, Tamil Nadu. The company serves commercial industries across India, including hospitality and manufacturing.",
+      "reply": "Ventidy Solutions is a commercial duct cleaning and maintenance company based in Chennai, Tamil Nadu, serving commercial industries across India including hospitality and manufacturing."
+    },
+    {
+      "id": "ventidy_services_list",
+      "category": "service",
+      "title": "Services Overview",
+      "keywords": [
+        "services", "service", "what services", "cleaning", "what do you do",
+        "offer", "provide", "solutions", "specialized", "list"
+      ],
+      "patterns": [
+        "what services do you provide",
+        "what services do you offer",
+        "what cleaning services do you offer",
+        "what do you clean",
+        "list of services",
+        "services offered",
+        "what are your services",
+        "all services"
+      ],
+      "document": "Ventidy Solutions provides several specialized services including Hood Cleaning, Kitchen Exhaust Duct Cleaning and Degreasing, Laundry Duct Cleaning, AHU Coil Cleaning, and FCU Coil Cleaning.",
+      "reply": "Ventidy Solutions provides several specialized services including:\n- Hood Cleaning\n- Kitchen Exhaust Duct Cleaning and Degreasing\n- Laundry Duct Cleaning\n- AHU Coil Cleaning\n- FCU Coil Cleaning\n- Duct Installation, Repair and Maintenance"
+    },
+    {
+      "id": "ventidy_service_kitchen_exhaust",
+      "category": "service",
+      "title": "Kitchen Exhaust Cleaning",
+      "keywords": [
+        "kitchen", "exhaust", "grease", "grime", "debris", "fire risk", "degreasing", "restaurant"
+      ],
+      "patterns": [
+        "kitchen exhaust",
+        "kitchen exhaust cleaning",
+        "kitchen duct",
+        "exhaust cleaning",
+        "hood cleaning",
+        "kitchen cleaning"
+      ],
+      "document": "Commercial Kitchen Exhaust Cleaning removes grease, grime, and debris from exhaust systems. It helps create a safer and healthier environment, reduces fire risks, and improves airflow.",
+      "reply": "Commercial Kitchen Exhaust Cleaning removes grease, grime, and debris from exhaust systems. It helps create a safer and healthier commercial kitchen environment, reduces fire risks, and improves airflow."
+    },
+    {
+      "id": "ventidy_service_ahu_fcu",
+      "category": "service",
+      "title": "AHU & FCU Coil Cleaning",
+      "keywords": [
+        "ahu", "fcu", "coil", "air handling", "air quality", "energy consumption", "hvac", "ventilation"
+      ],
+      "patterns": [
+        "ahu coil",
+        "ahu cleaning",
+        "ahu coil cleaning",
+        "fcu coil",
+        "fcu cleaning",
+        "coil cleaning",
+        "air handling unit"
+      ],
+      "document": "AHU Coil Cleaning improves the efficiency and performance of air handling units. It can improve indoor air quality, reduce energy consumption, and help extend equipment lifespan.",
+      "reply": "AHU Coil Cleaning improves the efficiency and performance of air handling units. It improves indoor air quality, reduces energy consumption, and helps extend equipment lifespan."
+    },
+    {
+      "id": "ventidy_service_laundry",
+      "category": "service",
+      "title": "Laundry Duct Cleaning",
+      "keywords": [
+        "laundry", "dryer", "lint", "laundry duct", "laundry cleaning"
+      ],
+      "patterns": [
+        "laundry duct",
+        "laundry cleaning",
+        "laundry duct cleaning"
+      ],
+      "document": "Ventidy Solutions provides specialized Laundry Duct Cleaning to remove lint and debris buildup, reducing fire hazards and optimizing dryer ventilation efficiency.",
+      "reply": "Ventidy Solutions provides specialized Laundry Duct Cleaning services to eliminate lint buildup, prevent fire risks, and maintain optimal airflow in commercial dryers."
+    },
+    {
+      "id": "ventidy_service_installation",
+      "category": "service",
+      "title": "Duct Installation",
+      "keywords": [
+        "installation", "install", "designing", "airflow", "ductwork", "duct installation"
+      ],
+      "patterns": [
+        "duct installation",
+        "install duct",
+        "new duct",
+        "duct designing"
+      ],
+      "document": "Duct Installation involves designing and installing duct systems according to specific requirements. It aims to provide efficient airflow, reduce energy losses, and comply with industry standards.",
+      "reply": "Duct Installation involves designing and installing duct systems according to specific facility requirements, ensuring efficient airflow, reduced energy loss, and compliance with industry standards."
+    },
+    {
+      "id": "ventidy_service_repair_maintenance",
+      "category": "service",
+      "title": "Repair and Maintenance",
+      "keywords": [
+        "repair", "maintenance", "breakdown", "motors", "electrical", "servicing", "amc"
+      ],
+      "patterns": [
+        "repair and maintenance",
+        "duct repair",
+        "maintenance services",
+        "motor repair"
+      ],
+      "document": "Repair and Maintenance services help prevent costly breakdowns, optimize system performance, and extend the lifespan of duct systems, motors, and other electrical parts.",
+      "reply": "Repair and Maintenance services help prevent costly breakdowns, optimize system performance, and extend the lifespan of duct systems, motors, and electrical components."
+    },
+    {
+      "id": "ventidy_contact_phone",
+      "category": "contact",
+      "title": "Contact Phone Number",
+      "keywords": [
+        "phone", "call", "mobile", "phone number", "contact number", "mobile number", "cell", "telephone"
+      ],
+      "patterns": [
+        "phone number",
+        "what is your phone number",
+        "contact number",
+        "how can i call you",
+        "give me your mobile number",
+        "give me your phone number",
+        "phone",
+        "call",
+        "mobile number",
+        "telephone"
+      ],
+      "document": "Ventidy Solutions can be contacted by phone at +91 9940110079.",
+      "reply": "You can contact Ventidy Solutions by phone at +91 9940110079."
+    },
+    {
+      "id": "ventidy_contact_email",
+      "category": "contact",
+      "title": "Contact Email",
+      "keywords": [
+        "email", "mail", "gmail", "inbox", "write", "send email"
+      ],
+      "patterns": [
+        "email",
+        "what is your email",
+        "what is your email address",
+        "email address",
+        "contact email",
+        "how can i email you",
+        "mail id",
+        "send email"
+      ],
+      "document": "The Ventidy Solutions contact email is Contact@ventidy.com.",
+      "reply": "The Ventidy Solutions contact email is Contact@ventidy.com."
+    },
+    {
+      "id": "ventidy_contact_general",
+      "category": "contact",
+      "title": "Contact Ventidy",
+      "keywords": [
+        "contact", "reach", "get in touch", "talk to", "support", "inquiry"
+      ],
+      "patterns": [
+        "how can i contact you",
+        "how to reach you",
+        "how do i contact ventidy",
+        "contact details",
+        "contact info",
+        "contact information",
+        "get in touch"
+      ],
+      "document": "Ventidy Solutions can be contacted by phone at +91 9940110079 or by email at Contact@ventidy.com. Customers can contact Ventidy Solutions with questions or requests for customized cleaning solutions.",
+      "reply": "You can contact Ventidy Solutions by phone at +91 9940110079 or by email at Contact@ventidy.com."
+    },
+    {
+      "id": "ventidy_location_address",
+      "category": "location",
+      "title": "Office Location & Address",
+      "keywords": [
+        "location", "address", "where", "office", "situated", "headquarters", "hq",
+        "madipakkam", "chennai", "erikkarai", "ramamurthi nagar", "pin code", "pincode", "600091"
+      ],
+      "patterns": [
+        "where are you located",
+        "where is your office",
+        "office location",
+        "where is ventidy located",
+        "what is your location",
+        "where is ventidy",
+        "your address",
+        "office address",
+        "what is your address",
+        "where are you based"
+      ],
+      "document": "Ventidy Solutions is located at No:4B Erikkarai Street, Ramamurthi Nagar Main Road, Madipakkam, Chennai 600091.",
+      "reply": "Ventidy Solutions is located at No:4B Erikkarai Street, Ramamurthi Nagar Main Road, Madipakkam, Chennai 600091."
+    },
+    {
+      "id": "ventidy_business_hours",
+      "category": "hours",
+      "title": "Business & Working Hours",
+      "keywords": [
+        "hours", "working hours", "business hours", "timing", "timings", "open", "close", "closed",
+        "monday", "friday", "saturday", "sunday", "weekend", "schedule"
+      ],
+      "patterns": [
+        "what are your working hours",
+        "what are your business hours",
+        "working hours",
+        "business hours",
+        "opening hours",
+        "when are you open",
+        "what time do you open",
+        "are you open on saturday",
+        "are you open on sunday",
+        "weekend hours",
+        "timings"
+      ],
+      "document": "Ventidy Solutions business hours are Monday to Friday, 09:00 AM to 05:00 PM. The company is closed on Saturday and Sunday.",
+      "reply": "Ventidy Solutions business hours are Monday to Friday, 09:00 AM to 05:00 PM. The company is closed on Saturday and Sunday."
+    },
+    {
+      "id": "ventidy_team_technicians",
+      "category": "statistics",
+      "title": "Technicians and Team",
+      "keywords": [
+        "technicians", "technician", "team", "staff", "workers", "experts", "engineers", "trained", "how many"
+      ],
+      "patterns": [
+        "how many technicians do you have",
+        "how many technicians",
+        "how many staff",
+        "technician count",
+        "team size",
+        "trained technicians",
+        "experienced technicians"
+      ],
+      "document": "Ventidy Solutions has more than 40 trained and experienced technicians and provides service coverage across India.",
+      "reply": "Ventidy Solutions has more than 40 trained and experienced technicians and provides service coverage across India."
+    },
+    {
+      "id": "ventidy_coverage_india",
+      "category": "statistics",
+      "title": "Service Coverage & Pan-India Presence",
+      "keywords": [
+        "coverage", "across india", "pan india", "all india", "cities", "states", "service area"
+      ],
+      "patterns": [
+        "where do you provide service",
+        "service coverage",
+        "do you provide service across india",
+        "pan india",
+        "coverage across india",
+        "do you serve all over india"
+      ],
+      "document": "Ventidy Solutions provides service coverage across India with more than 40 trained and experienced technicians, serving commercial and industrial clients nationwide.",
+      "reply": "Ventidy Solutions provides commercial duct cleaning and maintenance service coverage across India."
+    },
+    {
+      "id": "ventidy_coverage_international",
+      "category": "statistics",
+      "title": "International Operations",
+      "keywords": [
+        "international", "internationally", "outside india", "outside of india",
+        "other countries", "abroad", "global", "foreign", "usa", "dubai", "uk"
+      ],
+      "patterns": [
+        "do you provide services internationally",
+        "international service",
+        "do you work outside india",
+        "outside india",
+        "services abroad",
+        "global services"
+      ],
+      "document": "Ventidy Solutions currently operates only within India and does not provide services internationally or outside India.",
+      "reply": "No. Ventidy Solutions currently operates only within India and does not provide services internationally or outside India."
+    },
+    {
+      "id": "ventidy_quality_commitment",
+      "category": "company",
+      "title": "Quality and Cost",
+      "keywords": [
+        "quality", "cost", "affordable", "commitment", "standards", "pricing", "cheap"
+      ],
+      "patterns": [
+        "quality commitment",
+        "service quality",
+        "affordable",
+        "why choose ventidy"
+      ],
+      "document": "Ventidy Solutions provides high-quality services at affordable costs while focusing on care, commitment, expertise, and a customer-centric approach with a 100% commitment to quality.",
+      "reply": "Ventidy Solutions provides high-quality services at affordable costs while focusing on care, commitment, expertise, and a 100% commitment to quality."
+    }
+  ],
+  "greetings": {
+    "hello": [
+      "hi", "hello", "hey", "hii", "heyy", "hey there", "hello there", "greetings"
+    ],
+    "good_morning": [
+      "good morning", "a very good morning", "very good morning", "morning"
+    ],
+    "good_afternoon": [
+      "good afternoon", "a very good afternoon", "very good afternoon", "afternoon"
+    ],
+    "good_evening": [
+      "good evening", "a very good evening", "very good evening", "evening"
+    ],
+    "how_are_you": [
+      "how are you", "how are you doing", "how are things", "how are you today", "hope you are doing well"
+    ],
+    "thanks": [
+      "thanks", "thank you", "thanks a lot", "thank you very much", "appreciate it", "thank u"
+    ]
+  },
+  "typos": {
+    "morming": "Good morning! ☀️ How can I help you with Ventidy Solutions?",
+    "morningg": "Good morning! ☀️ How can I help you with Ventidy Solutions?",
+    "afternon": "Good afternoon! ☀️ How can I help you with Ventidy Solutions?",
+    "evenng": "Good evening! 🌙 How can I help you with Ventidy Solutions?",
+    "helo": "Hello! 👋 How can I help you with Ventidy Solutions?",
+    "helllo": "Hello! 👋 How can I help you with Ventidy Solutions?",
+    "hye": "Hello! 👋 How can I help you with Ventidy Solutions?"
+  },
+  "blocked_company_topics": [
+    "ceo", "founder", "owner", "revenue", "net worth", "director", "started",
+    "profit", "valuation", "shares", "stock", "investors", "salary"
+  ]
+}

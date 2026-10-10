@@ -1,0 +1,569 @@
+/*
+ * Ventidy mobile-first polish
+ * Designed for touch devices from small iPhones through modern Android phones.
+ */
+
+:root {
+  --mobile-gutter: 20px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: 76px;
+}
+
+body {
+  min-width: 320px;
+  overscroll-behavior-x: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+button,
+a {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+img,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+@media (max-width: 1023px) {
+  /* Keep every major section inside the phone viewport. */
+  section,
+  main,
+  header,
+  footer {
+    max-width: 100%;
+  }
+
+  /* Comfortable Apple/Android touch targets. */
+  button,
+  a[role="button"],
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .input-field {
+    min-height: 48px;
+    font-size: 16px; /* prevents iOS Safari input zoom */
+  }
+
+  /* Main content rhythm. */
+  section {
+    scroll-margin-top: 76px;
+  }
+
+  /* Hero */
+  #home {
+    min-height: 680px;
+    height: min(760px, calc(100svh - 64px));
+    border-radius: 0;
+  }
+
+  #home > div:first-child {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  #home > div:first-child img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 0;
+  }
+
+  #home > div:first-child::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(4, 12, 25, .42) 0%, rgba(4, 12, 25, .28) 35%, rgba(4, 12, 25, .76) 100%);
+    pointer-events: none;
+  }
+
+  #home > div:nth-child(2) {
+    min-height: 100%;
+    display: flex;
+    align-items: flex-end;
+    padding: 112px var(--mobile-gutter) 48px;
+  }
+
+  #home h1 {
+    margin-top: 12px;
+    font-size: clamp(42px, 13vw, 58px);
+    line-height: .98;
+    letter-spacing: -.04em;
+  }
+
+  #home p {
+    margin-top: 18px;
+    max-width: 19rem;
+    font-size: clamp(21px, 6vw, 30px);
+    line-height: 1.12;
+  }
+
+  #home .btn-primary,
+  #home .btn-secondary {
+    flex: 1 1 150px;
+    min-width: 0;
+    min-height: 50px;
+    justify-content: center;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  /* Navigation */
+  header.sticky {
+    padding-top: var(--safe-top);
+  }
+
+  header.sticky nav {
+    min-height: 64px;
+    padding-left: max(var(--mobile-gutter), var(--safe-left));
+    padding-right: max(var(--mobile-gutter), var(--safe-right));
+  }
+
+  header.sticky nav img {
+    width: auto;
+    height: 40px;
+  }
+
+  header.sticky nav > button {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Mobile menu feels like a sheet rather than a desktop dropdown. */
+  header.sticky > div[class*="glass"] {
+    margin: 0 12px 12px;
+    border-radius: 22px;
+    box-shadow: 0 18px 50px rgba(11, 30, 61, .16);
+  }
+
+  header.sticky > div[class*="glass"] button {
+    min-height: 48px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Shared page heroes */
+  section[class*="min-h-[calc(100vh"] {
+    min-height: calc(100svh - 72px);
+  }
+
+  /* Mobile cards: slightly tighter than desktop, still premium. */
+  .card {
+    border-radius: 20px;
+  }
+
+  /* Forms */
+  form.card,
+  .card.p-8 {
+    padding: 20px;
+  }
+
+  textarea.input-field {
+    min-height: 140px;
+  }
+
+  /* Gallery / lightbox */
+  .fixed.inset-0[class*="bg-black/70"],
+  .fixed.inset-0[class*="bg-black/90"] {
+    padding: max(12px, var(--safe-top)) max(12px, var(--safe-right))
+      max(12px, var(--safe-bottom)) max(12px, var(--safe-left));
+  }
+
+  /* Fixed chatbot */
+  .fixed.bottom-24.right-5[class*="w-[360px]"] {
+    right: max(12px, var(--safe-right));
+    bottom: calc(76px + var(--safe-bottom));
+    width: min(390px, calc(100vw - 24px));
+    height: min(70svh, 560px);
+    max-width: calc(100vw - 24px);
+    border-radius: 22px;
+  }
+
+  /* CTA */
+  #contact {
+    padding-top: 52px;
+    padding-bottom: calc(64px + var(--safe-bottom));
+  }
+
+  #contact > div {
+    border-radius: 26px;
+    padding: 52px 20px;
+  }
+
+  #contact h2 {
+    font-size: clamp(32px, 9vw, 42px);
+    line-height: 1.05;
+  }
+
+  #contact p {
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  #contact p br {
+    display: none;
+  }
+
+  #contact > div button {
+    width: 100%;
+    min-height: 52px;
+    justify-content: center;
+  }
+
+  /* CTA consultation modal */
+  .fixed.inset-0 > div[class*="max-w-xl"] {
+    width: calc(100vw - 24px);
+    max-height: calc(100svh - 24px);
+    padding: 22px;
+    border-radius: 24px;
+  }
+
+  .fixed.inset-0 > div[class*="max-w-xl"] h2 {
+    padding-right: 40px;
+    font-size: 26px;
+  }
+
+  .fixed.inset-0 > div[class*="max-w-xl"] input,
+  .fixed.inset-0 > div[class*="max-w-xl"] textarea {
+    font-size: 16px;
+    min-height: 50px;
+  }
+
+  .fixed.inset-0 > div[class*="max-w-xl"] textarea {
+    min-height: 130px;
+  }
+
+  .fixed.inset-0 > div[class*="max-w-xl"] > button {
+    top: 14px;
+    right: 14px;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+  }
+
+  .fixed.inset-0 > div[class*="max-w-xl"] .flex.justify-end {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .fixed.inset-0 > div[class*="max-w-xl"] .flex.justify-end button {
+    width: 100%;
+    min-height: 50px;
+    justify-content: center;
+  }
+
+  /* Admin console */
+  .lg\:pl-64 {
+    padding-left: 0 !important;
+  }
+
+  /* Keep wide data tables usable: horizontal swipe, never crushed columns. */
+  .card.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .card.overflow-x-auto table {
+    min-width: 720px;
+  }
+
+  /* Filter controls stack cleanly on phones. */
+  .card.flex.flex-wrap {
+    flex-direction: column;
+  }
+
+  .card.flex.flex-wrap > *,
+  .card.flex.flex-wrap .min-w-\[220px\] {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+
+  .card.flex.flex-wrap select {
+    width: 100%;
+  }
+
+  /* Stats and compact grids */
+  .grid.grid-cols-2 {
+    gap: 12px;
+  }
+
+  /* Avoid accidental horizontal scrolling from long IDs/emails. */
+  .font-mono {
+    overflow-wrap: anywhere;
+  }
+
+  /* Footer spacing and thumb-friendly social icons. */
+  footer a[class*="grid"] {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/*
+ * Touch devices should not simulate desktop hover.
+ * Tap/focus remains interactive; hover-only transforms/colors are removed.
+ */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:brightness-110:hover {
+    filter: none !important;
+  }
+
+  .hover\:-translate-y-1:hover,
+  .hover\:-translate-y-1\.5:hover,
+  .hover\:scale-\[1\.02\]:hover,
+  .hover\:scale-105:hover {
+    transform: none !important;
+  }
+
+  .group:hover .group-hover\:translate-x-1 {
+    transform: none !important;
+  }
+
+  .hover\:shadow-2xl:hover,
+  .hover\:shadow-glow:hover,
+  .hover\:shadow-3xl:hover {
+    box-shadow: inherit !important;
+  }
+
+  .hover\:bg-brand-50:hover,
+  .hover\:bg-white\/5:hover,
+  .hover\:bg-white\/10:hover,
+  .hover\:bg-slate-100:hover,
+  .hover\:bg-red-50:hover {
+    background-color: inherit !important;
+  }
+
+  /* Preserve a subtle pressed state instead of hover effects. */
+  button:active,
+  a:active {
+    transform: scale(.985);
+    transition-duration: 80ms;
+  }
+
+  .btn-primary:active,
+  .btn-secondary:active {
+    transform: scale(.985);
+  }
+}
+
+/* Very small phones: keep controls side-by-side only when they actually fit. */
+@media (max-width: 380px) {
+  :root {
+    --mobile-gutter: 16px;
+  }
+
+  #home {
+    min-height: 640px;
+    height: 680px;
+  }
+
+  #home > div:nth-child(2) {
+    padding-bottom: 34px;
+  }
+
+  #home .flex.flex-row {
+    flex-direction: column;
+  }
+
+  #home .btn-primary,
+  #home .btn-secondary {
+    width: 100%;
+    flex: none;
+  }
+
+  .card {
+    border-radius: 18px;
+  }
+}
+
+/* Landscape phones: avoid an unnecessarily tall hero. */
+@media (max-width: 900px) and (orientation: landscape) {
+  #home {
+    min-height: 560px;
+    height: 100svh;
+  }
+
+  #home > div:nth-child(2) {
+    align-items: center;
+    padding-top: 80px;
+    padding-bottom: 32px;
+  }
+}
+
+/* Respect devices with reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+
+@media (max-width: 767px) {
+  /* Gallery stack scales to the actual phone width. */
+  .gallery-stack {
+    width: min(320px, calc(100vw - 40px));
+    height: 360px;
+  }
+
+  .gallery-card {
+    width: min(330px, calc(100vw - 56px));
+    height: 220px;
+    border-width: 3px;
+    border-radius: 18px;
+  }
+
+  .gallery-grid {
+    width: calc(100vw - 24px);
+    max-height: calc(100svh - 24px);
+    overflow-y: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 56px 12px 20px;
+    border-radius: 22px;
+  }
+
+  .gallery-grid img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 14px;
+  }
+
+  .gallery-modal button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .gallery-lightbox {
+    padding: 64px 14px;
+  }
+
+  .gallery-image {
+    width: 100%;
+    max-width: 100%;
+    max-height: 78svh;
+    border-radius: 16px;
+  }
+
+  .gallery-close,
+  .gallery-prev,
+  .gallery-next {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    font-size: 42px;
+    line-height: 1;
+  }
+
+  .gallery-close {
+    top: max(12px, var(--safe-top));
+    right: max(10px, var(--safe-right));
+  }
+
+  .gallery-prev {
+    left: max(8px, var(--safe-left));
+  }
+
+  .gallery-next {
+    right: max(8px, var(--safe-right));
+  }
+}
+
+@media (max-width: 380px) {
+  .gallery-stack {
+    height: 320px;
+  }
+
+  .gallery-card {
+    width: calc(100vw - 48px);
+    height: 205px;
+  }
+}
+@media (max-width: 767px) {
+  .card.group {
+    align-items: center;
+    text-align: center;
+  }
+
+  .card.group h3 {
+    width: 100%;
+    text-align: center;
+  }
+
+  .card.group p {
+    width: 100%;
+    text-align: left;
+  }
+
+  .card.group a {
+    align-self: center;
+  }
+}
+/* Services cards - mobile */
+@media (max-width: 767px) {
+  .service-card {
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 22px 18px;
+    text-align: center;
+  }
+
+  .service-card > div:first-child {
+    width: 100% !important;
+    height: 210px !important;
+    flex-shrink: 0;
+  }
+
+  .service-card > div:nth-child(2) {
+    width: 100%;
+    text-align: center;
+  }
+
+  .service-card h3 {
+    width: 100%;
+    text-align: center;
+    font-size: 1.2rem !important;
+    line-height: 1.4;
+  }
+
+  .service-card p {
+    width: 100%;
+    text-align: left;
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+}

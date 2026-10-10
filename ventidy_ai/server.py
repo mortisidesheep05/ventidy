@@ -1,39 +1,29 @@
 import os
 import sys
-
-# Ensure symlinks warning is suppressed
-os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
-
-# On serverless platforms (such as Vercel / AWS Lambda), the root filesystem is read-only.
-# Redirect model and cache files to writable /tmp directory.
-if "VERCEL" in os.environ or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
-    os.environ.setdefault("HF_HOME", "/tmp/huggingface")
-    os.environ.setdefault("TRANSFORMERS_CACHE", "/tmp/huggingface/hub")
-    os.environ.setdefault("TORCH_HOME", "/tmp/torch")
-
 from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Any
-from rag_engine import chat, metadata_collection, init_llm
+from rag_engine import chat, get_knowledge_count, init_llm
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[Ventidy AI Server] Initializing AI service...")
     init_llm()
-    print("[Ventidy AI Server] Ready to accept chat requests on http://localhost:8000")
+    port = os.environ.get("PORT", "8000")
+    print(f"[Ventidy AI Server] Ready to accept chat requests on port {port}")
     yield
 
 app = FastAPI(
     title="Ventidy AI Chatbot API",
-    description="Backend RAG AI Service for Ventidy Solutions Customer Chatbot",
-    version="1.0.0",
+    description="Lightweight Backend AI Service for Ventidy Solutions Customer Chatbot",
+    version="2.0.0",
     lifespan=lifespan
 )
 
-# Configure CORS: support FRONTEND_URL env var for production Vercel frontend,
+# Configure CORS: support FRONTEND_URL env var for production frontend,
 # with local development origins supported as default fallback.
 frontend_env = os.environ.get("FRONTEND_URL", "").strip()
 allowed_origins = [
@@ -91,7 +81,7 @@ def health_check():
         "status": "ok",
         "online": True,
         "service": "ventidy-ai",
-        "documents_count": metadata_collection.count(),
+        "documents_count": get_knowledge_count(),
         "ready": True
     }
 
@@ -127,4 +117,5 @@ def handle_chat(request: ChatRequest):
         )
 
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=False)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("server:app", host="0.0.0.0", port=port, reload=False)

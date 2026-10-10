@@ -1,13 +1,26 @@
 # -*- coding: utf-8 -*-
-"""Ventidy AI - RAG Engine
+"""Ventidy AI - Lightweight Production RAG Engine
 
-Adapted from UNNIS_CHATBOT.ipynb (Google Colab)
-Supports SentenceTransformers, ChromaDB metadata filtering,
-and Qwen CausalLM generation (Qwen/Qwen3-4B-Instruct-2507).
+A fast, dependency-free retrieval engine for Ventidy Solutions.
+Replaces heavy ML models (PyTorch, Transformers, SentenceTransformers, ChromaDB)
+with a deterministic, structured JSON knowledge base, phrase/keyword matching,
+fuzzy sequence matching, and strict fallback guardrails.
+
+Supports optional external LLM integration via VENTIDY_LLM_API_KEY.
 """
 
 import os
 import sys
+import re
+import json
+import difflib
+from typing import Dict, Any, Optional, Tuple, List
+
+try:
+    from rapidfuzz import fuzz, process
+    RAPIDFUZZ_AVAILABLE = True
+except ImportError:
+    RAPIDFUZZ_AVAILABLE = False
 
 # Configure UTF-8 for console output on Windows
 if sys.platform == "win32":
@@ -17,638 +30,488 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-# Suppress symlinks warning
-os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
-
-# In serverless environments (e.g. Vercel, AWS Lambda), root filesystem is read-only.
-# Redirect model and cache files to writable /tmp storage.
-if "VERCEL" in os.environ or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
-    os.environ.setdefault("HF_HOME", "/tmp/huggingface")
-    os.environ.setdefault("TRANSFORMERS_CACHE", "/tmp/huggingface/hub")
-    os.environ.setdefault("TORCH_HOME", "/tmp/torch")
-
-import chromadb
-from sentence_transformers import SentenceTransformer
+# Determine path to knowledge.json
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+KNOWLEDGE_FILE = os.path.join(CURRENT_DIR, "knowledge.json")
 
 # ============================================================
-# 1. LLM CONFIGURATION (Qwen/Qwen3-4B-Instruct-2507)
+# 1. KNOWLEDGE BASE LOADER
 # ============================================================
-model_name = "Qwen/Qwen3-4B-Instruct-2507"
-tokenizer = None
-model = None
+def load_knowledge_base() -> Dict[str, Any]:
+    """Load knowledge base from JSON file with safe fallback."""
+    if os.path.exists(KNOWLEDGE_FILE):
+        try:
+            with open(KNOWLEDGE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"[Ventidy AI] Warning: Failed to read {KNOWLEDGE_FILE}: {e}")
 
-def init_llm(name: str = model_name):
-    """
-    Initialize Qwen CausalLM and tokenizer if requested or available.
-    """
-    global tokenizer, model
+    # Built-in minimal fallback if knowledge.json is missing
+    return {
+        "company_name": "Ventidy Solutions",
+        "documents": [],
+        "greetings": {},
+        "typos": {},
+        "blocked_company_topics": [
+            "ceo", "founder", "owner", "revenue", "net worth", "director"
+        ]
+    }
 
-    # Check if explicitly enabled via environment variable
-    # (By default on CPU/low-RAM systems, LLM loading is opt-in to avoid OOM crash)
-    load_env = os.environ.get("VENTIDY_LOAD_LLM", "0")
-    if load_env != "1":
-        print("[Ventidy AI] Running in fast RAG retrieval mode. (Set VENTIDY_LOAD_LLM=1 to load Qwen HuggingFace model).")
-        return
+KB = load_knowledge_base()
+DOCUMENTS: List[Dict[str, Any]] = KB.get("documents", [])
+GREETINGS: Dict[str, List[str]] = KB.get("greetings", {})
+TYPOS: Dict[str, str] = KB.get("typos", {})
+BLOCKED_TOPICS: List[str] = KB.get("blocked_company_topics", [])
+
+def get_knowledge_count() -> int:
+    """Return count of knowledge documents for health checks."""
+    return len(DOCUMENTS)
+
+# ============================================================
+# 2. OPTIONAL EXTERNAL LLM INTEGRATION
+# ============================================================
+LLM_API_KEY = os.environ.get("VENTIDY_LLM_API_KEY", "").strip()
+LLM_BASE_URL = os.environ.get("VENTIDY_LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+LLM_MODEL = os.environ.get("VENTIDY_LLM_MODEL", "gpt-4o-mini")
+
+def init_llm():
+    """Verify engine and optional external LLM status."""
+    print(f"[Ventidy AI] Lightweight RAG engine loaded with {len(DOCUMENTS)} knowledge documents.")
+    if LLM_API_KEY:
+        print(f"[Ventidy AI] External LLM enabled ({LLM_MODEL} via {LLM_BASE_URL}).")
+    else:
+        print("[Ventidy AI] Running in zero-cost, local deterministic mode (fastest & 0% hallucination).")
+
+def call_external_llm(query: str, context: str) -> Optional[str]:
+    """Call external LLM if configured, strictly bound to context."""
+    if not LLM_API_KEY:
+        return None
 
     try:
-        from transformers import AutoTokenizer, AutoModelForCausalLM
-        import torch
+        import urllib.request
 
-        print(f"[Ventidy AI] Loading causal LLM ({name})...")
-        tokenizer = AutoTokenizer.from_pretrained(name)
-        device_map = "auto" if torch.cuda.is_available() else "cpu"
-        dtype = torch.float16 if torch.cuda.is_available() else torch.float32
-
-        model = AutoModelForCausalLM.from_pretrained(
-            name,
-            torch_dtype=dtype,
-            device_map=device_map
+        system_prompt = (
+            "You are a helpful customer-support assistant for Ventidy Solutions. "
+            "Your job is to answer questions using ONLY the information provided in the context below.\n"
+            "RULES:\n"
+            "1. Use ONLY the provided context.\n"
+            "2. Do NOT use outside knowledge or assume facts.\n"
+            "3. If the context does not answer the question, reply exactly: 'I don't have that information.'\n"
+            "4. Keep the answer clear, professional, and friendly."
         )
-        print("[Ventidy AI] Qwen model loaded successfully!")
+
+        user_content = f"Context:\n{context}\n\nQuestion:\n{query}"
+        payload = json.dumps({
+            "model": LLM_MODEL,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ],
+            "temperature": 0.2,
+            "max_tokens": 250
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            f"{LLM_BASE_URL}/chat/completions",
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {LLM_API_KEY}"
+            },
+            method="POST"
+        )
+
+        with urllib.request.urlopen(req, timeout=5) as response:
+            res_data = json.loads(response.read().decode("utf-8"))
+            answer = res_data["choices"][0]["message"]["content"].strip()
+            return answer
     except Exception as e:
-        print(f"[Ventidy AI] Notice: Could not load full Qwen LLM ({e}). Falling back to contextual response generator.")
-        tokenizer = None
-        model = None
+        print(f"[Ventidy AI] Notice: External LLM request failed ({e}). Falling back to local response.")
+        return None
 
 # ============================================================
-# 2. SENTENCE EMBEDDINGS & CHROMADB
+# 3. TEXT NORMALIZATION & PREPROCESSING
 # ============================================================
-print("[Ventidy AI] Loading SentenceTransformer embedding model...")
-try:
-    # First attempt fast load from local cache if present
-    embedding_model = SentenceTransformer(
-        "sentence-transformers/all-MiniLM-L6-v2",
-        local_files_only=True
-    )
-except Exception:
-    # In a fresh cloud container (e.g. Vercel), download model weights to writable cache
-    print("[Ventidy AI] Local cache not found. Downloading 'sentence-transformers/all-MiniLM-L6-v2' from Hugging Face...")
-    embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+def normalize_text(text: str) -> str:
+    """Normalize text: lowercase, remove punctuation, collapse whitespace."""
+    text = text.lower().strip()
+    text = re.sub(r"[^\w\s\+]", " ", text)
+    return " ".join(text.split())
 
-print("[OK] Embedding model loaded!")
-
-class MyEmbeddingFunction:
-    def name(self):
-        return "ventidy_minilm"
-
-    def __call__(self, input):
-        return embedding_model.encode(input).tolist()
-
-    def embed_query(self, input):
-        return embedding_model.encode(input).tolist()
-
-embedding_function = MyEmbeddingFunction()
-
-# Initialize Chroma client
-chroma_client = chromadb.Client()
+def tokenize(text: str) -> set:
+    """Extract unique words from normalized text."""
+    normalized = normalize_text(text)
+    return set(normalized.split())
 
 # ============================================================
-# 3. KNOWLEDGE BASE DOCUMENTS & METADATA
+# 4. INTENT & CASUAL CONVERSATION MATCHING
 # ============================================================
-better_documents = [
-    """Ventidy Solutions is a commercial duct cleaning and maintenance company
-based in Chennai, Tamil Nadu. The company serves commercial industries across
-India, including hospitality and manufacturing.""",
+def match_casual(query_clean: str) -> Optional[str]:
+    """Check for greetings, thanks, and conversational queries."""
+    # Check common greeting typos first
+    for typo, reply in TYPOS.items():
+        # Match as whole word or standalone
+        pattern = r"\b" + re.escape(typo) + r"\b"
+        if re.search(pattern, query_clean):
+            return reply
 
-    """Ventidy Solutions provides several specialized services including
-Hood Cleaning, Kitchen Exhaust Duct Cleaning and Degreasing, Laundry Duct
-Cleaning, AHU Coil Cleaning, and FCU Coil Cleaning.""",
+    q_tokens = tokenize(query_clean)
 
-    """Commercial Kitchen Exhaust Cleaning removes grease, grime, and debris
-from exhaust systems. It helps create a safer and healthier environment,
-reduces fire risks, and improves airflow.""",
+    # Thanks
+    if any(phrase in query_clean for phrase in ["thank you", "thanks", "appreciate it", "thank u"]):
+        return "You're welcome! 😊 How can I assist you further with Ventidy Solutions?"
 
-    """AHU Coil Cleaning improves the efficiency and performance of air
-handling units. It can improve indoor air quality, reduce energy consumption,
-and help extend equipment lifespan.""",
+    # How are you
+    if any(phrase in query_clean for phrase in ["how are you", "how are you doing", "how are things", "hope you are doing well"]):
+        return "I'm doing great, thank you! 😊 How can I help you with Ventidy Solutions today?"
 
-    """Duct Installation involves designing and installing duct systems
-according to specific requirements. It aims to provide efficient airflow,
-reduce energy losses, and comply with industry standards.""",
+    # Morning
+    if any(phrase in query_clean for phrase in ["good morning", "morning"]):
+        return "Good morning! ☀️ How can I help you with Ventidy Solutions?"
 
-    """Repair and Maintenance services help prevent costly breakdowns,
-optimize system performance, and extend the lifespan of duct systems, motors,
-and other electrical parts.""",
+    # Afternoon
+    if any(phrase in query_clean for phrase in ["good afternoon", "afternoon"]):
+        return "Good afternoon! ☀️ How can I help you with Ventidy Solutions?"
 
-    """Ventidy Solutions has more than 40 trained and experienced technicians
-and provides service coverage across India.""",
+    # Evening
+    if any(phrase in query_clean for phrase in ["good evening", "evening"]):
+        return "Good evening! 🌙 How can I help you with Ventidy Solutions?"
 
-    """Ventidy Solutions currently operates only within India and does not
-provide services internationally or outside India.""",
+    # Standalone hello / hi / hey
+    hello_words = {"hi", "hello", "hey", "hii", "heyy", "greetings", "hola"}
+    if q_tokens.intersection(hello_words) and len(q_tokens) <= 3:
+        return "Hello! 👋 How can I help you with Ventidy Solutions?"
 
-    """Ventidy Solutions provides high-quality services at affordable costs
-while focusing on care, commitment, expertise, and a customer-centric
-approach.""",
+    return None
 
-    """Ventidy Solutions has 5+ specialized services and maintains a
-100% commitment to quality.""",
-
-    """Ventidy Solutions is located at No:4B Erikkarai Street, Ramamurthi
-Nagar Main Road, Madipakkam, Chennai 600091.""",
-
-    """Ventidy Solutions can be contacted by phone at +91 9940110079.""",
-
-    """The Ventidy Solutions contact email is Contact@ventidy.com.""",
-
-    """Ventidy Solutions business hours are Monday to Friday, 09:00 AM to
-05:00 PM. The company is closed on Saturday and Sunday.""",
-
-    """Customers can contact Ventidy Solutions with questions or requests for
-customized cleaning solutions. Specialists can help customers find a suitable
-solution."""
+# ============================================================
+# 5. RETRIEVAL & SCORING PIPELINE
+# ============================================================
+INTERNATIONAL_KEYWORDS = [
+    "international", "internationally", "outside india", "outside of india",
+    "other countries", "abroad", "global", "foreign", "usa", "dubai", "uk"
 ]
 
-metadata = [
-    {"category": "company"},       # 1
-    {"category": "service"},       # 2
-    {"category": "service"},       # 3
-    {"category": "service"},       # 4
-    {"category": "service"},       # 5
-    {"category": "service"},       # 6
-    {"category": "statistics"},    # 7
-    {"category": "statistics"},    # 8 ← India only / not international
-    {"category": "company"},       # 9
-    {"category": "statistics"},    # 10
-    {"category": "location"},      # 11
-    {"category": "contact"},       # 12
-    {"category": "contact"},       # 13
-    {"category": "hours"},         # 14
-    {"category": "contact"},       # 15
+# Core domain target vocabulary for token-level typo correction
+CORE_DOMAIN_VOCABULARY = [
+    # Services & Operations
+    "services", "service", "cleaning", "degreasing", "laundry",
+    "installation", "maintenance", "repair", "exhaust", "hood",
+    "coil", "duct", "airflow",
+    # Contact Details
+    "phone", "contact", "mobile", "telephone", "email",
+    # Location & Office
+    "location", "address", "office", "madipakkam", "chennai",
+    # Operating Hours
+    "hours", "working", "business", "timing", "timings",
+    "monday", "friday", "saturday", "sunday", "weekend",
+    # Team & Coverage
+    "technicians", "technician", "coverage",
+    # Geographic Scope
+    "international", "internationally",
+    # Company Name
+    "ventidy"
 ]
+CORE_DOMAIN_VOCAB_SET = set(CORE_DOMAIN_VOCABULARY)
 
-# Create collection
-metadata_collection = chroma_client.get_or_create_collection(
-    name="ventidy_knowledge_v5",
-    embedding_function=embedding_function
-)
-
-if metadata_collection.count() == 0:
-    metadata_ids = [f"ventidy_v5_{i}" for i in range(len(better_documents))]
-    metadata_collection.add(
-        documents=better_documents,
-        ids=metadata_ids,
-        metadatas=metadata
-    )
-    print(f"[OK] Documents and metadata added! Documents stored: {metadata_collection.count()}")
-
-# ============================================================
-# 4. CASUAL CONVERSATION & SEMANTIC EMBEDDINGS
-# ============================================================
-typo_greetings = {
-    "morming": "Good morning! ☀️ How can I help you with Ventidy Solutions?",
-    "morningg": "Good morning! ☀️ How can I help you with Ventidy Solutions?",
-    "afternon": "Good afternoon! ☀️ How can I help you with Ventidy Solutions?",
-    "evenng": "Good evening! 🌙 How can I help you with Ventidy Solutions?",
-    "helo": "Hello! 👋 How can I help you with Ventidy Solutions?"
-}
-
-casual_examples = {
-    "hello": [
-        "hi",
-        "hello",
-        "hey",
-        "hii",
-        "hey there",
-        "hello there"
-    ],
-    "good_morning": [
-        "good morning",
-        "a very good morning",
-        "very good morning",
-        "have a good morning",
-        "wishing you a good morning",
-        "hope you have a good morning"
-    ],
-    "good_afternoon": [
-        "good afternoon",
-        "a very good afternoon",
-        "very good afternoon",
-        "have a good afternoon",
-        "wishing you a good afternoon",
-        "hope you have a good afternoon"
-    ],
-    "good_evening": [
-        "good evening",
-        "a very good evening",
-        "very good evening",
-        "have a good evening",
-        "wishing you a good evening",
-        "hope you have a good evening"
-    ],
-    "how_are_you": [
-        "how are you",
-        "how are you doing",
-        "how are things",
-        "how are you today",
-        "how are you doing today",
-        "hope you are doing well"
-    ],
-    "thanks": [
-        "thanks",
-        "thank you",
-        "thanks a lot",
-        "thank you very much",
-        "I appreciate it"
-    ]
-}
-
-# Pre-compute casual embeddings for fast semantic matching
-casual_embeddings = {
-    intent: embedding_model.encode(examples)
-    for intent, examples in casual_examples.items()
-}
-
-international_keywords = [
-    "international",
-    "internationally",
-    "outside india",
-    "outside of india",
-    "other countries",
-    "abroad",
-    "global",
-    "outside the country"
-]
-
-category_keywords = {
-    "service": [
-        "service",
-        "services",
-        "cleaning",
-        "installation",
-        "maintenance",
-        "repair",
-        "duct",
-        "ahu",
-        "fcu",
-        "hood"
-    ],
-    "location": [
-        "where",
-        "location",
-        "address",
-        "located"
-    ],
-    "contact": [
-        "contact",
-        "phone",
-        "number",
-        "email",
-        "mail",
-        "reach"
-    ],
-    "hours": [
-        "hours",
-        "timing",
-        "open",
-        "closed",
-        "sunday",
-        "monday",
-        "saturday",
-        "working"
-    ],
-    "statistics": [
-        "technicians",
-        "technician",
-        "india",
-        "pan india",
-        "coverage",
-        "how many",
-        "international",
-        "internationally",
-        "outside india",
-        "outside",
-        "other countries",
-        "abroad",
-        "global"
-    ],
-    "company": [
-        "company",
-        "about",
-        "who"
-    ]
-}
-
-category_thresholds = {
-    "service": 0.75,
-    "location": 0.85,
-    "contact": 0.60,
-    "hours": 0.65,
-    "statistics": 0.70,
-    "company": 0.75
-}
-
-# ============================================================
-# 5. CATEGORY DETECTION & RELEVANCE
-# ============================================================
-def detect_category(query):
-    query = query.lower()
-
-    # Contact
-    if any(word in query for word in [
-        "contact", "phone", "number", "email",
-        "mail", "reach"
-    ]):
-        return "contact"
-
-    # Hours
-    if any(word in query for word in [
-        "hours", "timing", "open", "closed",
-        "working hours", "business hours",
-        "sunday", "monday", "saturday"
-    ]):
-        return "hours"
-
-    # Location
-    if any(word in query for word in [
-        "where", "location", "address", "located"
-    ]):
-        return "location"
-
-    # Statistics / coverage
-    if any(word in query for word in [
-      "technician",
-      "across india",
-      "pan india",
-      "coverage",
-      "india",
-      "how many",
-      "international",
-      "internationally",
-      "outside india",
-      "outside",
-      "other countries",
-      "abroad",
-      "global"
-    ]):
-        return "statistics"
-
-    # Services
-    if any(word in query for word in [
-        "service", "services",
-        "cleaning", "installation",
-        "maintenance", "repair",
-        "duct", "ahu", "fcu", "hood"
-    ]):
-        return "service"
-
-    return "company"
-
-def is_relevant(query, document, distance, category):
-    query = query.lower()
-    document = document.lower()
-
-    keywords = category_keywords.get(category, [])
-
-    # Find keywords that appear in both the question and document
-    matched_keywords = [
-        word for word in keywords
-        if word in query and word in document
-    ]
-
-    # If at least one meaningful keyword matches,
-    # allow the document even when the embedding distance is high
-    if len(matched_keywords) >= 1:
-        return True
-
-    # Otherwise use the normal distance threshold
-    threshold = category_thresholds.get(category, 0.75)
-
-    return distance <= threshold
-
-def build_rag_prompt(query, context):
-    prompt = f"""
-You are a helpful customer-support assistant for Ventidy Solutions.
-
-Your job is to answer questions using ONLY the information provided in the context below.
-
-IMPORTANT RULES:
-1. Use only the provided context.
-2. Do not use your own general knowledge.
-3. Do not invent or assume information.
-4. Do not say that Ventidy provides or does not provide something unless the context supports it.
-5. If the answer cannot be found in the context, respond exactly:
-"I don't have that information."
-6. Keep the answer clear, concise, and natural.
-7. If the question asks for a list, include all relevant items available in the context.
-
-Context:
-{context}
-
-User question:
-{query}
-
-Answer:
-"""
-    return prompt
-
-def format_fallback_answer(query: str, document: str, category: str) -> str:
+def fuzzy_correct_token(token: str) -> str:
     """
-    Format clean contextual answer adhering strictly to the 7 RAG rules
-    when transformer model is not loaded in memory.
+    Fuzzily correct a single word token if it is a close typo of a domain keyword.
+    Uses RapidFuzz with score_cutoff=82 to accept typos like 'phne', 'hors', 'workng',
+    'clening', 'servies', 'locaton', 'intenatioanl', while strictly rejecting distinct words.
     """
-    query_lower = query.lower()
+    if len(token) < 4:
+        return token
+    if token in CORE_DOMAIN_VOCAB_SET:
+        return token
+    if not RAPIDFUZZ_AVAILABLE:
+        return token
 
-    if category == "company":
-        if any(w in query_lower for w in ["ceo", "founder", "owner", "revenue", "net worth", "director", "started"]):
-            return "I don't have that information."
-        return "Ventidy Solutions is a commercial duct cleaning and maintenance company based in Chennai, Tamil Nadu, serving commercial industries across India."
+    match = process.extractOne(token, CORE_DOMAIN_VOCABULARY, scorer=fuzz.ratio, score_cutoff=82)
+    if match:
+        matched_word, score, _ = match
+        # Ensure length difference is reasonable (at most 2 characters)
+        if abs(len(token) - len(matched_word)) <= 2:
+            return matched_word
+    return token
 
-    if category == "contact":
-        if any(w in query_lower for w in ["phone", "call", "mobile", "number"]):
-            return "You can contact Ventidy Solutions by phone at +91 9940110079."
-        elif any(w in query_lower for w in ["email", "mail"]):
-            return "The Ventidy Solutions contact email is Contact@ventidy.com."
+def fuzzy_correct_query(query: str) -> Tuple[str, bool]:
+    """
+    Fuzzily correct misspelled domain words in a query while preserving punctuation.
+    Returns (corrected_query, has_corrections).
+    """
+    words = query.split()
+    corrected_words = []
+    has_corrections = False
+    for w in words:
+        clean = re.sub(r"[^\w]", "", w.lower())
+        if clean and len(clean) >= 4:
+            corr = fuzzy_correct_token(clean)
+            if corr != clean:
+                has_corrections = True
+                w_corr = re.sub(re.escape(clean), corr, w, flags=re.IGNORECASE)
+                corrected_words.append(w_corr)
+                continue
+        corrected_words.append(w)
+    return " ".join(corrected_words), has_corrections
+
+def score_document(query_norm: str, q_tokens: set, doc: Dict[str, Any]) -> float:
+    """Compute relevance score between normalized query and a knowledge document."""
+    score = 0.0
+    doc_id = doc.get("id", "")
+    patterns = doc.get("patterns", [])
+    keywords = doc.get("keywords", [])
+    doc_text_norm = normalize_text(doc.get("document", ""))
+    reply_norm = normalize_text(doc.get("reply", ""))
+
+    # 1. Exact phrase / pattern matching (highest confidence)
+    for p in patterns:
+        p_norm = normalize_text(p)
+        if p_norm == query_norm:
+            score += 120.0
+        elif p_norm in query_norm or query_norm in p_norm:
+            score += 70.0
         else:
-            return "You can contact Ventidy Solutions by phone at +91 9940110079 or by email at Contact@ventidy.com."
+            # Fuzzy match on pattern (strict threshold to avoid generic prefix overlap)
+            similarity = difflib.SequenceMatcher(None, query_norm, p_norm).ratio()
+            if similarity >= 0.88:
+                score += 60.0
 
-    if category == "hours":
-        return "Ventidy Solutions business hours are Monday to Friday, 09:00 AM to 05:00 PM. The company is closed on Saturday and Sunday."
+    # 2. Keyword overlap (exact tokens for single words, phrase match for multi-words)
+    for k in keywords:
+        k_norm = normalize_text(k)
+        if " " in k_norm:
+            if k_norm in query_norm:
+                score += 20.0
+        else:
+            if k_norm in q_tokens:
+                score += 15.0
 
-    if category == "location":
-        return "Ventidy Solutions is located at No:4B Erikkarai Street, Ramamurthi Nagar Main Road, Madipakkam, Chennai 600091."
+    # 3. Direct token overlap with document text
+    matched_tokens = q_tokens.intersection(set(doc_text_norm.split()))
+    # Filter out ultra-common stopwords
+    stopwords = {"a", "an", "the", "and", "or", "of", "to", "in", "is", "are", "do", "you", "i", "what", "how", "can", "with", "for", "your", "my", "me", "we", "us", "about"}
+    content_matches = matched_tokens - stopwords
+    score += len(content_matches) * 5.0
 
-    if category == "statistics":
-        if "technician" in query_lower or "how many" in query_lower:
-            return "Ventidy Solutions has more than 40 trained and experienced technicians and provides service coverage across India."
-        return "Ventidy Solutions provides service coverage across India with more than 40 trained and experienced technicians and 5+ specialized services."
+    # 4. Domain-specific intent boosts
+    # Contact phone boost
+    if doc_id == "ventidy_contact_phone":
+        if (
+            q_tokens.intersection({"phone", "call", "mobile", "telephone", "cell"})
+            or any(p in query_norm for p in ["phone number", "contact number", "mobile number", "call you"])
+        ):
+            score += 50.0
 
-    if category == "service":
-        if any(w in query_lower for w in ["all", "what services", "list", "provide"]):
-            return (
-                "Ventidy Solutions provides several specialized services including:\n"
-                "- Hood Cleaning\n"
-                "- Kitchen Exhaust Duct Cleaning and Degreasing\n"
-                "- Laundry Duct Cleaning\n"
-                "- AHU Coil Cleaning\n"
-                "- FCU Coil Cleaning\n"
-                "- Duct Installation, Repair and Maintenance"
-            )
+    # Contact email boost
+    elif doc_id == "ventidy_contact_email":
+        if (
+            q_tokens.intersection({"email", "mail", "gmail", "inbox"})
+            or "email address" in query_norm
+        ):
+            score += 50.0
 
-    # Return primary document cleaned
-    lines = [line.strip() for line in document.split("\n\n") if line.strip()]
-    return " ".join(lines[0].split()) if lines else "I don't have that information."
+    # General contact boost
+    elif doc_id == "ventidy_contact_general":
+        if (
+            q_tokens.intersection({"contact", "reach"})
+            or any(p in query_norm for p in ["get in touch", "contact info", "contact details"])
+        ):
+            score += 40.0
+
+    # Location boost (requires location-specific keywords or company inquiry)
+    elif doc_id == "ventidy_location_address":
+        if (
+            q_tokens.intersection({"location", "address", "located", "office", "madipakkam", "chennai"})
+            or ("where" in q_tokens and q_tokens.intersection({"you", "your", "ventidy", "based", "situated"}))
+            or any(p in query_norm for p in ["where are you", "where is your", "where is ventidy", "office location", "office address", "your location"])
+        ):
+            score += 45.0
+
+    # Hours boost
+    elif doc_id == "ventidy_business_hours":
+        if (
+            q_tokens.intersection({"hours", "timing", "timings", "open", "close", "closed", "sunday", "saturday", "monday", "friday", "weekend"})
+            or any(p in query_norm for p in ["working hours", "business hours", "opening hours"])
+        ):
+            score += 50.0
+
+    # Technicians count boost
+    elif doc_id == "ventidy_team_technicians":
+        if (
+            q_tokens.intersection({"technician", "technicians", "staff", "workers"})
+            or any(p in query_norm for p in ["how many technicians", "how many staff", "team size"])
+        ):
+            score += 45.0
+
+    # Services list boost
+    elif doc_id == "ventidy_services_list":
+        if any(phrase in query_norm for phrase in ["what services", "services do you provide", "cleaning services", "services offer", "services", "what do you clean", "list of services"]):
+            score += 60.0
+
+    # Specific services boosts
+    elif doc_id == "ventidy_service_ahu_fcu":
+        if q_tokens.intersection({"ahu", "fcu", "coil"}):
+            score += 60.0
+    elif doc_id == "ventidy_service_kitchen_exhaust":
+        if q_tokens.intersection({"kitchen", "exhaust", "hood", "degreasing"}):
+            score += 60.0
+    elif doc_id == "ventidy_service_laundry":
+        if q_tokens.intersection({"laundry", "dryer", "lint"}):
+            score += 60.0
+    elif doc_id == "ventidy_service_installation":
+        if q_tokens.intersection({"installation", "install", "designing"}):
+            score += 60.0
+    elif doc_id == "ventidy_service_repair_maintenance":
+        if q_tokens.intersection({"repair", "maintenance", "breakdown", "motors"}):
+            score += 60.0
+
+    return score
+
+def retrieve_best_document(query: str) -> Tuple[Optional[Dict[str, Any]], float]:
+    """Retrieve the single most relevant knowledge base item."""
+    query_norm = normalize_text(query)
+    q_tokens = tokenize(query_norm)
+
+    if not query_norm or not DOCUMENTS:
+        return None, 0.0
+
+    best_doc = None
+    best_score = -1.0
+
+    for doc in DOCUMENTS:
+        score = score_document(query_norm, q_tokens, doc)
+        if score > best_score:
+            best_score = score
+            best_doc = doc
+
+    return best_doc, best_score
 
 # ============================================================
 # 6. MAIN CHAT FUNCTION
 # ============================================================
 def chat(query: str, return_dict: bool = False):
-    # Clean the question
-    query_clean = query.lower().strip()
+    """
+    Main entry point for processing a user query.
+    Returns either a string reply or a dictionary compatible with server.py.
+    """
+    fallback_reply = "I don't have that information."
+    if not query or not query.strip():
+        if return_dict:
+            return {"reply": fallback_reply, "category": "general", "document": None}
+        return fallback_reply
+
+    query_strip = query.strip()
+    query_clean = query_strip.lower()
+    query_norm = normalize_text(query_strip)
+    q_tokens = tokenize(query_strip)
 
     # --------------------------------------------------
-    # Handle common greeting spelling mistakes
+    # Step 1: Casual conversation & greetings
     # --------------------------------------------------
-    for typo, response in typo_greetings.items():
-        if typo in query_clean:
-            if return_dict:
-                return {"reply": response, "category": "greeting", "document": None}
-            return response
-
-    # --------------------------------------------------
-    # Semantic understanding for casual conversation
-    # --------------------------------------------------
-    query_embedding = embedding_model.encode(query)
-
-    best_intent = None
-    best_similarity = -1
-
-    for intent, example_embeddings in casual_embeddings.items():
-        similarities = embedding_model.similarity(
-            query_embedding,
-            example_embeddings
-        )
-        similarity = similarities.max().item()
-
-        if similarity > best_similarity:
-            best_similarity = similarity
-            best_intent = intent
-
-    # Handle casual conversation
-    if best_similarity >= 0.60:
-        reply = None
-        if best_intent == "hello":
-            reply = "Hello! 👋 How can I help you with Ventidy Solutions?"
-        elif best_intent == "good_morning":
-            reply = "Good morning! ☀️ How can I help you with Ventidy Solutions?"
-        elif best_intent == "good_afternoon":
-            reply = "Good afternoon! ☀️ How can I help you with Ventidy Solutions?"
-        elif best_intent == "good_evening":
-            reply = "Good evening! 🌙 How can I help you with Ventidy Solutions?"
-        elif best_intent == "how_are_you":
-            reply = "I'm doing great! 😊 How can I help you with Ventidy Solutions?"
-        elif best_intent == "thanks":
-            reply = "You're welcome! 😊"
-
-        if reply:
-            if return_dict:
-                return {"reply": reply, "category": "casual", "document": None}
-            return reply
+    casual_reply = match_casual(query_clean)
+    if casual_reply:
+        if return_dict:
+            return {"reply": casual_reply, "category": "greeting", "document": None}
+        return casual_reply
 
     # --------------------------------------------------
-    # Special handling: International / India coverage
+    # Step 2: Strict guardrail against unknown company topics
     # --------------------------------------------------
-    if any(keyword in query_clean for keyword in international_keywords):
+    if any(re.search(r"\b" + re.escape(topic) + r"\b", query_clean) for topic in BLOCKED_TOPICS):
+        if return_dict:
+            return {"reply": fallback_reply, "category": "company", "document": None}
+        return fallback_reply
+
+    # --------------------------------------------------
+    # Step 3: International / Outside India check
+    # --------------------------------------------------
+    if any(re.search(r"\b" + re.escape(w) + r"\b", query_clean) for w in INTERNATIONAL_KEYWORDS):
+        intl_doc = next((d for d in DOCUMENTS if d.get("id") == "ventidy_coverage_international"), None)
         intl_reply = (
             "No. Ventidy Solutions currently operates only within India "
             "and does not provide services internationally or outside India."
         )
         if return_dict:
-            return {"reply": intl_reply, "category": "statistics", "document": better_documents[7]}
+            return {
+                "reply": intl_reply,
+                "category": "statistics",
+                "document": intl_doc.get("document") if intl_doc else None
+            }
         return intl_reply
 
     # --------------------------------------------------
-    # 1. Detect category
+    # Step 4: Knowledge Base Retrieval
     # --------------------------------------------------
-    category = detect_category(query)
+    best_doc, score = retrieve_best_document(query_strip)
 
-    # --------------------------------------------------
-    # 2. Retrieve relevant documents from ChromaDB
-    # --------------------------------------------------
-    results = metadata_collection.query(
-        query_texts=[query],
-        n_results=5,
-        where={"category": category},
-        include=[
-            "documents",
-            "distances",
-            "metadatas"
-        ]
-    )
+    # Threshold test:
+    # A score of at least 25 indicates genuine relevance to Ventidy knowledge
+    RELEVANCE_THRESHOLD = 25.0
 
-    if not results["documents"] or not results["documents"][0]:
-        no_info = "I don't have that information."
+    # Step 4b: If no confident exact match, apply token-level fuzzy typo correction
+    if not best_doc or score < RELEVANCE_THRESHOLD:
+        corrected_query, has_corrections = fuzzy_correct_query(query_strip)
+        if has_corrections:
+            corrected_clean = corrected_query.lower()
+            # Re-check international with corrected query (e.g. 'intenatioanl' -> 'international')
+            if any(re.search(r"\b" + re.escape(w) + r"\b", corrected_clean) for w in INTERNATIONAL_KEYWORDS):
+                intl_doc = next((d for d in DOCUMENTS if d.get("id") == "ventidy_coverage_international"), None)
+                intl_reply = (
+                    "No. Ventidy Solutions currently operates only within India "
+                    "and does not provide services internationally or outside India."
+                )
+                if return_dict:
+                    return {
+                        "reply": intl_reply,
+                        "category": "statistics",
+                        "document": intl_doc.get("document") if intl_doc else None
+                    }
+                return intl_reply
+
+            # Re-retrieve with corrected query
+            fuzzy_doc, fuzzy_score = retrieve_best_document(corrected_query)
+            if fuzzy_doc and fuzzy_score >= RELEVANCE_THRESHOLD:
+                best_doc = fuzzy_doc
+                score = fuzzy_score
+                query_strip = corrected_query
+
+    if not best_doc or score < RELEVANCE_THRESHOLD:
         if return_dict:
-            return {"reply": no_info, "category": category, "document": None}
-        return no_info
+            return {"reply": fallback_reply, "category": "unknown", "document": None}
+        return fallback_reply
+
+    category = best_doc.get("category", "general")
+    doc_text = best_doc.get("document", "")
+    template_reply = best_doc.get("reply", doc_text)
 
     # --------------------------------------------------
-    # 3. Combine retrieved documents
+    # Step 5: Optional External LLM generation or Local Reply
     # --------------------------------------------------
-    document = "\n\n".join(results["documents"][0])
-    distance = results["distances"][0][0]
+    final_reply = None
+    if LLM_API_KEY:
+        final_reply = call_external_llm(query_strip, doc_text)
 
-    # --------------------------------------------------
-    # 4. Check relevance
-    # --------------------------------------------------
-    relevant = is_relevant(
-        query,
-        document,
-        distance,
-        category
-    )
+    if not final_reply:
+        final_reply = template_reply
 
-    # --------------------------------------------------
-    # 5. Reject unrelated questions
-    # --------------------------------------------------
-    if not relevant:
-        no_info = "I don't have that information."
-        if return_dict:
-            return {"reply": no_info, "category": category, "document": None}
-        return no_info
-
-    # --------------------------------------------------
-    # 6. Build RAG prompt
-    # --------------------------------------------------
-    prompt = build_rag_prompt(query, document)
-
-    # --------------------------------------------------
-    # 7. Generate with Qwen or Fallback
-    # --------------------------------------------------
-    if model is not None and tokenizer is not None:
-        try:
-            messages = [{"role": "user", "content": prompt}]
-            text = tokenizer.apply_chat_template(
-                messages,
-                tokenize=False,
-                add_generation_prompt=True
-            )
-            inputs = tokenizer(text, return_tensors="pt").to(model.device)
-            outputs = model.generate(**inputs, max_new_tokens=200)
-            response = tokenizer.decode(
-                outputs[0][inputs["input_ids"].shape[-1]:],
-                skip_special_tokens=True
-            ).strip()
-
-            if return_dict:
-                return {"reply": response, "category": category, "document": document}
-            return response
-        except Exception as e:
-            print(f"[Ventidy AI] Qwen generation error: {e}")
-
-    # Fallback to direct contextual answer
-    response = format_fallback_answer(query, document, category)
     if return_dict:
-        return {"reply": response, "category": category, "document": document}
-    return response
+        return {
+            "reply": final_reply,
+            "category": category,
+            "document": doc_text
+        }
+    return final_reply
 
 # ============================================================
-# 7. INTERACTIVE LOOP (Colab compatibility)
+# 7. INTERACTIVE CLI LOOP
 # ============================================================
 if __name__ == "__main__":
-    print("\n" + "=" * 50)
-    print("Ventidy AI RAG Engine Loaded!")
+    init_llm()
+    print("\n" + "=" * 55)
+    print("Ventidy AI Lightweight RAG Engine Loaded!")
     print("Type your question below (or 'exit' / 'quit' to end):")
-    print("=" * 50 + "\n")
+    print("=" * 55 + "\n")
 
     while True:
         try:
@@ -664,5 +527,5 @@ if __name__ == "__main__":
         if not user_input.strip():
             continue
 
-        resp = chat(user_input)
-        print("Bot:", resp)
+        resp = chat(user_input, return_dict=True)
+        print(f"Bot [{resp['category']}]: {resp['reply']}\n")
