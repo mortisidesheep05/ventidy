@@ -13,7 +13,7 @@ import {
 import logo from "../../assets/hero/logo.png"
 
 const NAV_LINKS = [
-  { to: 'about', label: 'About', icon: Building2 },
+  { to: 'about', label: 'About SivaRK', icon: Building2 },
   { to: 'services', label: 'Services', icon: Sparkles },
   { to: 'gallery', label: 'Why Us', icon: ShieldCheck },
   { to: 'contact', label: 'Contact', icon: PhoneCall },
