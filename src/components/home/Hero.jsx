@@ -17,64 +17,64 @@ import slide6 from "../../assets/hero/img6.jpeg";
 
 export default function Hero() {
   //image
-const images = [slide1, slide2, slide3, slide4, slide5, slide6]
+  const images = [slide1, slide2, slide3, slide4, slide5, slide6]
 
-const [current, setCurrent] = useState(0)
+  const [current, setCurrent] = useState(0)
 
-useEffect(() => {
-  const interval = setInterval(() => {
-    setCurrent((prev) => (prev + 1) % images.length)
-  }, 8000)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % images.length)
+    }, 8000)
 
-  return () => clearInterval(interval)
-}, [])
+    return () => clearInterval(interval)
+  }, [])
 
-const scrollToSection = (id) => {
-  const section = document.getElementById(id)
+  const scrollToSection = (id) => {
+    const section = document.getElementById(id)
 
-  if (section) {
-    section.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    })
+    if (section) {
+      section.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      })
+    }
   }
-}
 
   return (
-   <section
-  className="relative min-h-[700px] w-full overflow-hidden"
-  id="home"
->
-<div className="absolute inset-0 z-0 overflow-hidden">
+    <section
+      className="relative min-h-[700px] w-full overflow-hidden"
+      id="home"
+    >
+      <div className="absolute inset-0 z-0 overflow-hidden">
 
-<AnimatePresence initial={false}>
-  <motion.img
-    key={current}
-    src={images[current]}
-    alt=""
-   className="h-full w-full object-cover rounded-2xl"
-    initial={{
-      opacity: 0,
-      scale: 1,
-    }}
-    animate={{
-      opacity: 1,
-      scale: 1,
-    }}
-    exit={{
-      opacity: 0,
-      scale: 1,
-    }}
-    transition={{
-      duration: 1.8,
-      ease: "easeInOut",
-    }}
-  />
-</AnimatePresence>
+        <AnimatePresence initial={false}>
+          <motion.img
+            key={current}
+            src={images[current]}
+            alt=""
+            className="h-full w-full object-cover rounded-2xl"
+            initial={{
+              opacity: 0,
+              scale: 1,
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+            }}
+            exit={{
+              opacity: 0,
+              scale: 1,
+            }}
+            transition={{
+              duration: 1.8,
+              ease: "easeInOut",
+            }}
+          />
+        </AnimatePresence>
 
-  <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-black/55" />
 
-</div>
+      </div>
 
       <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-5 py-24 lg:grid-cols-2 lg:px-8 lg:py-32">
         <div>
@@ -105,27 +105,27 @@ const scrollToSection = (id) => {
           >We Make Your Vents Tidy
           </motion.p>
           <motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.3 }}
-  className="mt-8 flex flex-row flex-wrap gap-3 sm:gap-4"
->
-  <button
-    onClick={() => scrollToSection("contact")}
-    className="btn-primary"
-  >
-    <FileEdit size={18} />
-    <span>Get In Touch</span>
-  </button>
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8 flex flex-row flex-wrap gap-3 sm:gap-4"
+          >
+            <button
+              onClick={() => scrollToSection("contact")}
+              className="btn-primary"
+            >
+              <FileEdit size={18} />
+              <span>Get In Touch</span>
+            </button>
 
-  <Link
-    to="/track-complaint"
-    className="btn-secondary !border-white/30 !text-white hover:!bg-white/10"
-  >
-    <Search size={18} />
-    <span>Company Profile</span>
-  </Link>
-</motion.div>
+            <Link
+              to="/"
+              className="btn-secondary !border-white/30 !text-white hover:!bg-white/10"
+            >
+              <Search size={18} />
+              <span>Company Profile</span>
+            </Link>
+          </motion.div>
         </div>
 
 
