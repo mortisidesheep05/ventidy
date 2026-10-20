@@ -84,9 +84,8 @@ export default function ChatbotWindow({
             <Bot size={20} />
             {/* Status indicator dot */}
             <span
-              className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-navy-900 dark:border-white ${
-                serverOnline ? "bg-emerald-400" : "bg-amber-400"
-              }`}
+              className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-navy-900 dark:border-white ${serverOnline ? "bg-emerald-400" : "bg-amber-400"
+                }`}
               title={serverOnline ? "AI Server Connected" : "AI Server Connecting..."}
             />
           </div>
@@ -95,19 +94,16 @@ export default function ChatbotWindow({
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold">Ventidy AI</h3>
               <span
-                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                  serverOnline
+                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${serverOnline
                     ? "bg-emerald-500/20 text-emerald-300 dark:bg-emerald-600/20 dark:text-emerald-700"
                     : "bg-amber-500/20 text-amber-300 dark:bg-amber-600/20 dark:text-amber-700"
-                }`}
+                  }`}
               >
                 {serverOnline ? "Online" : "Connecting..."}
               </span>
             </div>
 
-            <p className="text-xs opacity-70">
-              Commercial Duct & Maintenance AI
-            </p>
+
           </div>
         </div>
 
