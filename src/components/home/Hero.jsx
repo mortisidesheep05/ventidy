@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { FileEdit, Search } from 'lucide-react'
 import ResolutionRing from '../ui/ResolutionRing'
@@ -12,22 +12,29 @@ import slide4 from "../../assets/hero/img4.jpeg";
 import slide5 from "../../assets/hero/img5.jpeg";
 import slide6 from "../../assets/hero/img6.jpeg";
 
-
-
-
 export default function Hero() {
   //image
   const images = [slide1, slide2, slide3, slide4, slide5, slide6]
 
   const [current, setCurrent] = useState(0)
+  const [previous, setPrevious] = useState(0)
+
+  // Preload all slides in background so transitions are instant
+  useEffect(() => {
+    images.forEach((src) => {
+      const img = new Image()
+      img.src = src
+    })
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
+      setPrevious(current)
       setCurrent((prev) => (prev + 1) % images.length)
     }, 8000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [current, images.length])
 
   const scrollToSection = (id) => {
     const section = document.getElementById(id)
@@ -42,41 +49,44 @@ export default function Hero() {
 
   return (
     <section
-      className="relative min-h-[700px] w-full overflow-hidden"
+      className="relative min-h-[700px] w-full overflow-hidden bg-navy-950"
       id="home"
     >
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0 z-0 overflow-hidden bg-navy-950">
 
-        <AnimatePresence initial={false}>
-          <motion.img
-            key={current}
-            src={images[current]}
-            alt=""
-            className="h-full w-full object-cover rounded-2xl"
-            initial={{
-              opacity: 0,
-              scale: 1,
-            }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-            }}
-            exit={{
-              opacity: 0,
-              scale: 1,
-            }}
-            transition={{
-              duration: 1.8,
-              ease: "easeInOut",
-            }}
-          />
-        </AnimatePresence>
+        {/* Previous base image stays fully visible underneath, preventing any grey flash or blank background during transitions */}
+        <img
+          src={images[previous]}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-hidden="true"
+        />
 
-        <div className="absolute inset-0 bg-black/55" />
+        {/* Incoming image smoothly fades in over the previous image */}
+        <motion.img
+          key={current}
+          src={images[current]}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          initial={{
+            opacity: 0,
+            scale: 1,
+          }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+          }}
+          transition={{
+            duration: 1.6,
+            ease: "easeInOut",
+          }}
+        />
+
+        <div className="absolute inset-0 bg-black/35 sm:bg-black/40 z-10 pointer-events-none" />
 
       </div>
 
-      <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-5 py-24 lg:grid-cols-2 lg:px-8 lg:py-32">
+      <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-5 py-20 sm:gap-12 sm:py-24 lg:grid-cols-2 lg:px-8 lg:py-32">
         <div>
           <motion.span
             initial={{ opacity: 0, y: 12 }}
@@ -89,7 +99,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mt-4 text-4xl font-bold leading-[1.1] text-ice sm:text-5xl lg:text-6xl"
+            className="mt-3 sm:mt-4 text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight sm:leading-[1.1] text-ice"
           >
             Ventidy
             <br />
@@ -101,14 +111,15 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="mt-6 max-w-lg text-4xl font-bold text-white"
-          >We Make Your Vents Tidy
+            className="mt-3 sm:mt-6 max-w-lg text-lg sm:text-2xl lg:text-4xl font-bold text-white"
+          >
+            We Make Your Vents Tidy
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="mt-8 flex flex-row flex-wrap gap-3 sm:gap-4"
+            className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4"
           >
             <button
               onClick={() => scrollToSection("contact")}

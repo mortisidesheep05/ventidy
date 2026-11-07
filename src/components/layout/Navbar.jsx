@@ -78,7 +78,7 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Navigation Links */}
-        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-navy-50/70 dark:bg-white/5 border border-navy-100/60 dark:border-white/10 backdrop-blur-md">
+        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-navy-50/70 dark:bg-white/5 border border-navy-100/60 dark:border-white/10 backdrop-blur-md ml-auto">
           {NAV_LINKS.map((link) => {
             const isActive = activeSection === link.to
             return (

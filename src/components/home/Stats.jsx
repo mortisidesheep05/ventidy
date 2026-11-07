@@ -41,7 +41,7 @@ export default function Stats() {
               transition={{ delay: i * 0.1 }}
               className="text-center"
             >
-              <p className="font-display text-4xl font-bold text-ice lg:text-5xl">
+              <p className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-ice">
                 {s.type === 'text' ? s.value : <Counter to={s.value} suffix={s.suffix} />}
               </p>
               <p className="mt-2 text-sm text-white/50">{s.label}</p>

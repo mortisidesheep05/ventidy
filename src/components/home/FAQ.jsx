@@ -36,18 +36,18 @@ export default function FAQ() {
     <div className="grid gap-10 md:grid-cols-2">
 
       {/* Left Rectangle */}
-      <div className="rounded-xl border border-gray-300 bg-white p-10 shadow-sm">
-        <h2 className="mb-8 text-center text-3xl font-serif">
-<div className="mb-8 flex justify-center">
+      <div className="rounded-xl border border-gray-300 bg-white p-6 sm:p-10 shadow-sm">
+        <h2 className="mb-6 sm:mb-8 text-center text-2xl sm:text-3xl font-serif">
+<div className="mb-6 sm:mb-8 flex justify-center">
   <img
     src={logo}
     alt="Ventidy Logo"
-    className="h-16 w-auto"
+    className="h-14 sm:h-16 w-auto"
   />
 </div>
         </h2>
 
-        <p className="text-center leading-8 text-gray-700">
+        <p className="text-center text-sm sm:text-base leading-7 sm:leading-8 text-gray-700">
           No:4B Erikkarai street,<br />
           Ramamurthi nagar main road,<br />
           Madipakkam, Chennai 600091
