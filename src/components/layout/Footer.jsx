@@ -24,8 +24,7 @@ export default function Footer() {
               <span className="font-display text-xl font-bold text-ice">Ventidy</span>
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
-              Ventidy helps organizations close the loop on every complaint — logged,
-              tracked, and resolved with full transparency.
+              We Make Your Vents Tidy
             </p>
           </div>
 
