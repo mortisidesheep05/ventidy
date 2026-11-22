@@ -44,6 +44,7 @@ video {
 }
 
 @media (max-width: 1023px) {
+
   /* Keep every major section inside the phone viewport. */
   section,
   main,
@@ -68,7 +69,8 @@ video {
 
   .input-field {
     min-height: 48px;
-    font-size: 16px; /* prevents iOS Safari input zoom */
+    font-size: 16px;
+    /* prevents iOS Safari input zoom */
   }
 
   /* Main content rhythm. */
@@ -84,14 +86,14 @@ video {
     border-radius: 0;
   }
 
-  #home > div:first-child {
+  #home>div:first-child {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
   }
 
-  #home > div:first-child img {
+  #home>div:first-child img {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -101,11 +103,11 @@ video {
     border-radius: 0;
   }
 
-  #home > div:first-child::after {
+  #home>div:first-child::after {
     display: none;
   }
 
-  #home > div:nth-child(2) {
+  #home>div:nth-child(2) {
     min-height: 100%;
     display: flex;
     flex-direction: column;
@@ -176,19 +178,19 @@ video {
     height: 40px;
   }
 
-  header.sticky nav > button {
+  header.sticky nav>button {
     width: 44px;
     height: 44px;
   }
 
   /* Mobile menu feels like a sheet rather than a desktop dropdown. */
-  header.sticky > div[class*="glass"] {
+  header.sticky>div[class*="glass"] {
     margin: 0 12px 12px;
     border-radius: 22px;
     box-shadow: 0 18px 50px rgba(11, 30, 61, .16);
   }
 
-  header.sticky > div[class*="glass"] button {
+  header.sticky>div[class*="glass"] button {
     min-height: 48px;
     padding-left: 16px;
     padding-right: 16px;
@@ -217,8 +219,7 @@ video {
   /* Gallery / lightbox */
   .fixed.inset-0[class*="bg-black/70"],
   .fixed.inset-0[class*="bg-black/90"] {
-    padding: max(12px, var(--safe-top)) max(12px, var(--safe-right))
-      max(12px, var(--safe-bottom)) max(12px, var(--safe-left));
+    padding: max(12px, var(--safe-top)) max(12px, var(--safe-right)) max(12px, var(--safe-bottom)) max(12px, var(--safe-left));
   }
 
   /* Fixed chatbot */
@@ -237,7 +238,7 @@ video {
     padding-bottom: calc(64px + var(--safe-bottom));
   }
 
-  #contact > div {
+  #contact>div {
     border-radius: 26px;
     padding: 52px 20px;
   }
@@ -256,36 +257,36 @@ video {
     display: none;
   }
 
-  #contact > div button {
+  #contact>div button {
     width: 100%;
     min-height: 52px;
     justify-content: center;
   }
 
   /* CTA consultation modal */
-  .fixed.inset-0 > div[class*="max-w-xl"] {
+  .fixed.inset-0>div[class*="max-w-xl"] {
     width: calc(100vw - 24px);
     max-height: calc(100svh - 24px);
     padding: 22px;
     border-radius: 24px;
   }
 
-  .fixed.inset-0 > div[class*="max-w-xl"] h2 {
+  .fixed.inset-0>div[class*="max-w-xl"] h2 {
     padding-right: 40px;
     font-size: 26px;
   }
 
-  .fixed.inset-0 > div[class*="max-w-xl"] input,
-  .fixed.inset-0 > div[class*="max-w-xl"] textarea {
+  .fixed.inset-0>div[class*="max-w-xl"] input,
+  .fixed.inset-0>div[class*="max-w-xl"] textarea {
     font-size: 16px;
     min-height: 50px;
   }
 
-  .fixed.inset-0 > div[class*="max-w-xl"] textarea {
+  .fixed.inset-0>div[class*="max-w-xl"] textarea {
     min-height: 130px;
   }
 
-  .fixed.inset-0 > div[class*="max-w-xl"] > button {
+  .fixed.inset-0>div[class*="max-w-xl"]>button {
     top: 14px;
     right: 14px;
     width: 44px;
@@ -294,12 +295,12 @@ video {
     place-items: center;
   }
 
-  .fixed.inset-0 > div[class*="max-w-xl"] .flex.justify-end {
+  .fixed.inset-0>div[class*="max-w-xl"] .flex.justify-end {
     flex-direction: column-reverse;
     gap: 10px;
   }
 
-  .fixed.inset-0 > div[class*="max-w-xl"] .flex.justify-end button {
+  .fixed.inset-0>div[class*="max-w-xl"] .flex.justify-end button {
     width: 100%;
     min-height: 50px;
     justify-content: center;
@@ -325,7 +326,7 @@ video {
     flex-direction: column;
   }
 
-  .card.flex.flex-wrap > *,
+  .card.flex.flex-wrap>*,
   .card.flex.flex-wrap .min-w-\[220px\] {
     width: 100%;
     min-width: 0;
@@ -411,7 +412,7 @@ video {
     max-height: 490px;
   }
 
-  #home > div:nth-child(2) {
+  #home>div:nth-child(2) {
     padding: 56px var(--mobile-gutter) 24px;
   }
 
@@ -432,6 +433,7 @@ video {
 
 /* Tablet & landscape: allow buttons side-by-side */
 @media (min-width: 520px) and (max-width: 1023px) {
+
   #home .flex.flex-row,
   #home .flex.flex-col {
     flex-direction: row;
@@ -454,7 +456,7 @@ video {
     height: 100svh;
   }
 
-  #home > div:nth-child(2) {
+  #home>div:nth-child(2) {
     align-items: center;
     padding-top: 80px;
     padding-bottom: 32px;
@@ -470,6 +472,7 @@ video {
 
 
 @media (max-width: 767px) {
+
   /* Gallery stack scales to the actual phone width. */
   .gallery-stack {
     width: min(320px, calc(100vw - 40px));
@@ -551,6 +554,7 @@ video {
     height: 205px;
   }
 }
+
 @media (max-width: 767px) {
   .card.group {
     align-items: center;
@@ -571,6 +575,7 @@ video {
     align-self: center;
   }
 }
+
 /* Services cards - mobile */
 @media (max-width: 767px) {
   .service-card {
@@ -581,13 +586,13 @@ video {
     text-align: center;
   }
 
-  .service-card > div:first-child {
+  .service-card>div:first-child {
     width: 100% !important;
     height: 210px !important;
     flex-shrink: 0;
   }
 
-  .service-card > div:nth-child(2) {
+  .service-card>div:nth-child(2) {
     width: 100%;
     text-align: center;
   }

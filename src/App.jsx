@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify'
 import MainLayout from './layouts/MainLayout'
 import AdminLayout from './layouts/AdminLayout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -12,15 +11,18 @@ import Contact from './pages/Contact'
 import NotFound from './pages/NotFound'
 
 import Dashboard from './pages/admin/Dashboard'
+import AdminLogin from './pages/admin/AdminLogin'
 import AdminComplaints from './pages/admin/AdminComplaints'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminReports from './pages/admin/AdminReports'
 import AdminSettings from './pages/admin/AdminSettings'
 
+
 export default function App() {
   return (
     <>
       <Routes>
+        {/* Public Website Routes */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -31,15 +33,20 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
 
+        {/* Admin Authentication */}
+        <Route path="/ventidy-control-7392" element={<AdminLogin />} />
+
+        {/* Protected Admin Routes */}
         <Route
           path="/admin"
           element={
-            <ProtectedRoute requireAdmin>
+            <ProtectedRoute>
               <AdminLayout />
             </ProtectedRoute>
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="inquiries" element={<Dashboard />} />
           <Route path="complaints" element={<AdminComplaints />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="reports" element={<AdminReports />} />
@@ -47,7 +54,7 @@ export default function App() {
         </Route>
       </Routes>
 
-      <ToastContainer position="top-right" theme="colored" autoClose={3500} />
+
     </>
   )
 }
