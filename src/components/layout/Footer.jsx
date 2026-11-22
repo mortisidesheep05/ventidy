@@ -24,7 +24,7 @@ export default function Footer() {
               <span className="font-display text-xl font-bold text-ice">Ventidy</span>
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
-              We Make Your Vents Tidy
+              With Ventidy Solutions, you can expect nothing but the best – from our technicians to our services, we've got you covered
             </p>
           </div>
 
