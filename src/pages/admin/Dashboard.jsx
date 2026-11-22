@@ -282,8 +282,125 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Inquiries Table */}
-            <div className="overflow-x-auto">
+            {/* Mobile Inquiries List (No horizontal slide bar) */}
+            <div className="block md:hidden divide-y divide-navy-50 dark:divide-white/5">
+              {filteredInquiries.length > 0 ? (
+                filteredInquiries.map((inquiry) => {
+                  const isNew = inquiry.status === 'New'
+
+                  return (
+                    <div
+                      key={inquiry.id}
+                      onClick={() => handleViewInquiry(inquiry)}
+                      className="p-4 sm:p-5 hover:bg-brand-50/40 dark:hover:bg-white/[0.03] active:bg-brand-50/60 transition-colors cursor-pointer space-y-3"
+                    >
+                      {/* Top Row: Customer Info & Status Badge */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-sky-400 text-white font-semibold flex items-center justify-center text-xs shrink-0 shadow-sm">
+                            {inquiry.name
+                              ?.split(' ')
+                              .map((n) => n[0])
+                              .slice(0, 2)
+                              .join('')
+                              .toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-navy-900 dark:text-ice text-sm truncate">
+                              {inquiry.name}
+                            </p>
+                            <p className="text-[11px] text-navy-400 dark:text-white/40 truncate font-mono">
+                              {inquiry.email}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Status badge toggle */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleToggleStatus(inquiry.id)
+                          }}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-transform active:scale-95 ${
+                            isNew
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                              : 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30'
+                          }`}
+                          title="Click to toggle status"
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              isNew ? 'bg-amber-500 animate-pulse' : 'bg-teal-500'
+                            }`}
+                          />
+                          {inquiry.status}
+                        </button>
+                      </div>
+
+                      {/* Message Preview */}
+                      <p className="text-xs text-navy-700 dark:text-white/80 line-clamp-2 leading-relaxed bg-navy-50/50 dark:bg-navy-950/40 p-2.5 rounded-lg border border-navy-100/50 dark:border-white/5">
+                        {inquiry.message}
+                      </p>
+
+                      {/* Bottom Row: Date & Actions */}
+                      <div className="flex items-center justify-between text-xs pt-1">
+                        <span className="text-[11px] text-navy-400 dark:text-white/40">
+                          {inquiry.date} {inquiry.time ? `• ${inquiry.time}` : ''}
+                        </span>
+
+                        <div
+                          className="flex items-center gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleViewInquiry(inquiry)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-brand-600 dark:text-sky-400 bg-brand-500/10 hover:bg-brand-500/20 transition-colors"
+                          >
+                            <Eye size={13} />
+                            <span>View</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(inquiry.id)}
+                            className="p-1 rounded-lg text-navy-400 hover:text-red-600 hover:bg-red-500/10 dark:text-white/40 dark:hover:text-red-400 transition-colors"
+                            title="Delete inquiry"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="px-6 py-12 text-center">
+                  <div className="mx-auto max-w-sm space-y-3">
+                    <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-navy-100 dark:bg-white/5 text-navy-400 dark:text-white/40">
+                      <Search size={22} />
+                    </div>
+                    <p className="font-semibold text-navy-800 dark:text-white">
+                      No inquiries match your criteria
+                    </p>
+                    {(searchQuery || statusFilter !== 'All') && (
+                      <button
+                        onClick={() => {
+                          setSearchQuery('')
+                          setStatusFilter('All')
+                        }}
+                        className="btn-secondary !py-2 !px-4 !text-xs mt-2"
+                      >
+                        Clear All Filters
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Inquiries Table (Table view for md and larger screens) */}
+            <div className="hidden md:block overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <table className="w-full text-left text-sm border-collapse">
 
                 <thead>
@@ -373,7 +490,6 @@ export default function Dashboard() {
                               className="flex items-center justify-end gap-1.5"
                               onClick={(e) => e.stopPropagation()}
                             >
-
 
                               <button
                                 type="button"

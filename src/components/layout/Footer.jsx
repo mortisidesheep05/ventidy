@@ -20,14 +20,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2.5">
-              <logo />
+              <img src={logo} alt="Ventidy" className="h-9 w-auto object-contain" />
               <span className="font-display text-xl font-bold text-ice">Ventidy</span>
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
               Ventidy helps organizations close the loop on every complaint — logged,
               tracked, and resolved with full transparency.
             </p>
- */}
           </div>
 
           {COLUMNS.map((col) => (
