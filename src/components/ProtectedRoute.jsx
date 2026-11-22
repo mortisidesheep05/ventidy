@@ -1,27 +1,16 @@
-import { Navigate, useLocation } from 'react-router-dom'
+
+import { Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { onAuthStateChanged, signOut } from 'firebase/auth'
+import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../firebase'
 
-const ADMIN_EMAIL = 'test@gmail.com'
-
 export default function ProtectedRoute({ children }) {
-  const location = useLocation()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser && currentUser.email === ADMIN_EMAIL) {
-        setUser(currentUser)
-      } else {
-        if (currentUser) {
-          await signOut(auth)
-        }
-
-        setUser(null)
-      }
-
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser)
       setLoading(false)
     })
 
@@ -29,11 +18,15 @@ export default function ProtectedRoute({ children }) {
   }, [])
 
   if (loading) {
-    return <div>Checking authentication...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Checking authentication...
+      </div>
+    )
   }
 
   if (!user) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/ventidy-control-7392" replace />
   }
 
   return children

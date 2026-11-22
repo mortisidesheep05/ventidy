@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -10,15 +11,14 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { toast } from 'react-toastify'
-import Logo from '../../components/ui/Logo'
 import { auth } from '../../firebase'
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { signInWithEmailAndPassword } from 'firebase/auth'
 import logo from '../../assets/hero/logo.png'
 
 export default function AdminLogin() {
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('test@gmail.com')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -35,19 +35,13 @@ export default function AdminLogin() {
     setLoading(true)
 
     try {
-      const result = await signInWithEmailAndPassword(
+      await signInWithEmailAndPassword(
         auth,
         email.trim(),
         password
       )
 
-      if (result.user.email !== 'test@gmail.com') {
-        await signOut(auth)
-        toast.error('You are not authorised to access this dashboard.')
-        return
-      }
-
-      toast.success('Welcome back, Admin!')
+      toast.success('Welcome back!')
       navigate('/admin', { replace: true })
 
     } catch (error) {
@@ -89,21 +83,19 @@ export default function AdminLogin() {
 
           {/* Logo & Title */}
           <div className="text-center space-y-3">
-            <div className="text-center space-y-3">
-              <div className="mx-auto flex h-40 w-40 items-center justify-center">
-                <img
-                  src={logo}
-                  alt="Ventidy Logo"
-                  className="h-full w-full object-contain"
-                />
-              </div>
+            <div className="mx-auto flex h-40 w-40 items-center justify-center">
+              <img
+                src={logo}
+                alt="Ventidy Logo"
+                className="h-full w-full object-contain"
+              />
             </div>
+
             <div className="text-center">
               <h2 className="text-xl font-bold text-navy-900 dark:text-white">
                 Admin Login
               </h2>
               <p className="mt-1 text-sm text-navy-500 dark:text-white/50">
-
               </p>
             </div>
           </div>
@@ -113,8 +105,6 @@ export default function AdminLogin() {
 
             {/* Email */}
             <div>
-
-
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-navy-400 dark:text-white/40">
                   <Mail size={16} />
@@ -133,8 +123,6 @@ export default function AdminLogin() {
 
             {/* Password */}
             <div>
-
-
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-navy-400 dark:text-white/40">
                   <Lock size={16} />
