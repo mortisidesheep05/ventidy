@@ -3,6 +3,7 @@ import { LogOut, ExternalLink } from 'lucide-react'
 import { toast } from 'react-toastify'
 import { signOut } from 'firebase/auth'
 import { auth } from '../firebase'
+import logo from '../assets/hero/logo.png'
 
 export default function AdminLayout() {
   const navigate = useNavigate()
@@ -27,7 +28,7 @@ export default function AdminLayout() {
         {/* Logo */}
         <Link to="/" className="flex items-center">
           <img
-            src="/src/assets/hero/logo.png"
+            src={logo}
             alt="Ventidy Logo"
             className="h-12 w-auto object-contain"
           />

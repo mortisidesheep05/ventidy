@@ -13,6 +13,7 @@ import { toast } from 'react-toastify'
 import Logo from '../../components/ui/Logo'
 import { auth } from '../../firebase'
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import logo from '../../assets/hero/logo.png'
 
 export default function AdminLogin() {
   const navigate = useNavigate()
@@ -91,7 +92,7 @@ export default function AdminLogin() {
             <div className="text-center space-y-3">
               <div className="mx-auto flex h-40 w-40 items-center justify-center">
                 <img
-                  src="/src/assets/hero/logo.png"
+                  src={logo}
                   alt="Ventidy Logo"
                   className="h-full w-full object-contain"
                 />
