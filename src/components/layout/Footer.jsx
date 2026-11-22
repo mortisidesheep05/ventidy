@@ -27,20 +27,7 @@ export default function Footer() {
               Ventidy helps organizations close the loop on every complaint — logged,
               tracked, and resolved with full transparency.
             </p>
-            <div className="mt-5 flex gap-3">
-              {SOCIALS.map(({ icon: Icon, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={label}
-                  className="grid h-9 w-9 place-items-center rounded-full border border-white/15 text-white/70 transition-colors hover:border-sky-400 hover:text-sky-400"
-                >
-                  <Icon size={16} />
-                </a>
-              ))}
-            </div>
+ */}
           </div>
 
           {COLUMNS.map((col) => (

@@ -94,12 +94,9 @@ export default function ChatbotWindow({
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold">Ventidy AI</h3>
               <span
-                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${serverOnline
-                    ? "bg-emerald-500/20 text-emerald-300 dark:bg-emerald-600/20 dark:text-emerald-700"
-                    : "bg-amber-500/20 text-amber-300 dark:bg-amber-600/20 dark:text-amber-700"
-                  }`}
+
               >
-                {serverOnline ? "Online" : "Connecting..."}
+
               </span>
             </div>
 

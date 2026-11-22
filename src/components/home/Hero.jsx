@@ -129,13 +129,13 @@ export default function Hero() {
               <span>Get In Touch</span>
             </button>
 
-            <Link
-              to="/"
+            <button
+              onClick={() => scrollToSection("gallery")}
               className="btn-secondary !border-white/30 !text-white hover:!bg-white/10"
             >
               <Search size={18} />
-              <span>Company Profile</span>
-            </Link>
+              <span> Services We Offer</span>
+            </button>
           </motion.div>
         </div>
 
